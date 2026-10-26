@@ -67,18 +67,11 @@ $('make-video').onclick=async()=>{
 };
 $('cancel-video').onclick=()=>controller?.abort();$('save-video').onclick=()=>{if(videoBlob)void save(videoBlob,videoExt,videoTrackId?'-'+videoTrackId:'');};
 $('video').onerror=()=>message('この端末で生成動画を再生できませんでした。別の対応ブラウザをご利用ください。',true);
-$('share-x').href=`https://x.com/intent/post?text=${encodeURIComponent(SHARE_TEXT)}`;
-let xFallback;
-$('share-x').onclick=event=>{
-  const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  if(!mobile||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
-  event.preventDefault();clearTimeout(xFallback);
-  const cleanup=()=>{clearTimeout(xFallback);document.removeEventListener('visibilitychange',onHidden);window.removeEventListener('pagehide',cleanup);};
-  const onHidden=()=>{if(document.hidden)cleanup();};
-  document.addEventListener('visibilitychange',onHidden);window.addEventListener('pagehide',cleanup,{once:true});
-  xFallback=setTimeout(()=>{cleanup();if(!document.hidden)window.location.href=$('share-x').href;},1500);
-  window.location.href='twitter://post?message='+encodeURIComponent(SHARE_TEXT);
-};
+const xWebURL='https://x.com/intent/tweet?text='+encodeURIComponent(SHARE_TEXT);
+const mobileX=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+$('share-x').href=mobileX?'twitter://post?message='+encodeURIComponent(SHARE_TEXT):xWebURL;
+$('share-x').textContent=mobileX?'Xアプリで投稿 ↗':'Xで投稿 ↗';
+$('share-x-web').href=xWebURL;
 $('share-text').value=SHARE_TEXT;
 $('copy-text').onclick=async()=>{try{await navigator.clipboard.writeText(SHARE_TEXT);message('投稿文とハッシュタグをコピーしました。');}catch{$('share-text').hidden=false;$('share-text').focus();$('share-text').select();message('自動コピーを利用できません。選択された投稿文を手動でコピーしてください。');}};
 for(const [container,keys] of [['artist-links',[['artist','山形りおの紹介'],['music','楽曲を聴く']]],['event-links',[['ticket','チケット購入'],['album','ミニアルバム情報']]]])for(const [key,label] of keys){if(!LINKS[key])continue;const el=document.createElement('a');el.textContent=LINKS[key]?`${label} ↗`:`${label} · 公式リンク準備中`;if(LINKS[key]){el.href=LINKS[key];el.target='_blank';el.rel='noopener noreferrer';}$(container).append(el);}

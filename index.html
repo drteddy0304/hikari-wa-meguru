@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#0c1722">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <link rel="icon" href="./moon.svg" type="image/svg+xml"><link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.mjs?v=20261027-x-app"></script>
+  <script type="module" src="./app.mjs?v=20261027-x-direct"></script>
 </head>
 <body>
   <header class="site-header"><a href="#" class="wordmark"><span class="moon-mark" aria-hidden="true">◒</span><span>山形りお</span></a><a href="#live" class="header-date">2027.04.24 <span>ONEMAN LIVE ↗</span></a></header>
@@ -41,7 +41,7 @@
             <div id="video-result" hidden><video id="video" controls playsinline preload="metadata" aria-label="生成した12秒の告知動画"></video><div class="save-grid"><button id="save-video" class="button primary">動画を保存 ↓</button><a id="open-video" class="button secondary" target="_blank" rel="noopener">動画を開く</a></div><a id="download-video" class="text-button" download>動画ファイルを直接ダウンロード ↓</a></div>
             <p id="format-note" class="small muted"></p>
             <details><summary>動画を保存できないとき</summary><p>「動画を開く」または直接ダウンロードをお試しください。iPhoneでは共有画面から「ビデオを保存」「ファイルに保存」、Androidではダウンロード先をご確認ください。端末・形式により選択肢が異なります。</p><p>動画生成に対応しない場合や、投稿先がWebMを受け付けない場合は、別のMP4対応ブラウザでお試しください。iPhone・Android実機での保存は未検証です。</p></details>
-            <div class="share-block"><p>この月を、誰かの空へ。</p><p class="small muted">日本中から、叶うならば世界中から。<br>いろんな空の月の光で、このCDをつくりたい。<br>この光が届いた先で、またひとつ、月を見上げる人が増えていく。</p><div class="save-grid"><a id="share-x" class="button secondary" target="_blank" rel="noopener noreferrer">Xの投稿画面 ↗</a><a href="https://www.instagram.com/" class="button secondary" target="_blank" rel="noopener noreferrer">Instagramを開く ↗</a></div><button id="copy-text" class="text-button">投稿文とハッシュタグをコピー</button><textarea hidden id="share-text" rows="5" aria-label="コピー用の投稿文"></textarea><p class="small muted">先に動画を保存し、投稿画面で添付してください。</p></div>
+            <div class="share-block"><p>この月を、誰かの空へ。</p><p class="small muted">日本中から、叶うならば世界中から。<br>いろんな空の月の光で、このCDをつくりたい。<br>この光が届いた先で、またひとつ、月を見上げる人が増えていく。</p><div class="save-grid"><a id="share-x" class="button secondary">Xで投稿 ↗</a><a href="https://www.instagram.com/" class="button secondary" target="_blank" rel="noopener noreferrer">Instagramを開く ↗</a></div><details><summary>Xアプリが開かないとき</summary><p>LINEなどのアプリ内で開いている場合は、メニューからSafariでこのサイトを開き直してお試しください。Xアプリの起動は端末やアプリの設定によって制限されることがあります。</p><a id="share-x-web" class="text-button" target="_blank" rel="noopener noreferrer">ブラウザ版のXで投稿 ↗</a></details><button id="copy-text" class="text-button">投稿文とハッシュタグをコピー</button><textarea hidden id="share-text" rows="5" aria-label="コピー用の投稿文"></textarea><p class="small muted">先に動画を保存し、投稿画面で添付してください。</p></div>
           </div>
         </div>
       </div>
