@@ -1,4 +1,4 @@
-import { clamp, random, DURATION } from './core.mjs';
+import { clamp, random, DURATION, personalPhase } from './core.mjs?v=calendar-nov-apr';
 const serif = '"Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif';
 const ease = n => { n = clamp(n); return n*n*(3-2*n); };
 const rgb = (c,a=1) => `rgba(${c.join(',')},${a})`;
@@ -64,13 +64,15 @@ export function drawScene(canvas, scene, seconds=DURATION) {
   text(c,'あなたからもらった光で、',320,30,'#ece6d7',1);
   text(c,'CDの盤面が完成します。',365,30,'#ece6d7',1);
   const added=ease((seconds-3)/5);
-  disc(c,scene.texture,540,795,305,scene.phase*added,scene.light,added);
+  const target=scene.light?personalPhase(scene.phase):scene.phase;
+  const currentPhase=scene.phase+(target-scene.phase)*added;
+  disc(c,scene.texture,540,795,305,currentPhase,scene.light,added);
   if(scene.photo && scene.light){
     const p=scene.photo,scale=Math.min(300/p.width,270/p.height),w=p.width*scale,h=p.height*scale,x=540-w/2,y=1195-h/2;
     c.save();c.globalAlpha=1-ease((seconds-6)/2);c.drawImage(p,x,y,w,h);c.restore();
     for(const s of scene.light.samples){
       const u=(seconds-1.2-s.delay*6)/4.5;if(u<=0||u>=1)continue;
-      const e=ease(u),sx=x+s.x*w,sy=y+s.y*h,ey=795+Math.sin(s.angle)*270*s.distance,edge=Math.sqrt(305*305-(ey-795)**2),ex=540+edge*(1-2*scene.phase+2*scene.phase*(.15+.7*s.distance));
+      const e=ease(u),sx=x+s.x*w,sy=y+s.y*h,ey=795+Math.sin(s.angle)*270*s.distance,edge=Math.sqrt(305*305-(ey-795)**2),ex=540+edge*(1-2*target+2*target*(.15+.7*s.distance));
       const px=sx+(ex-sx)*e+Math.sin(e*Math.PI)*Math.sin(s.angle)*85,py=sy+(ey-sy)*e;
       c.save();c.globalAlpha=Math.min(1,u*8,(1-u)*8);c.shadowColor=rgb(s.rgb);c.shadowBlur=18;c.fillStyle=rgb(s.rgb);c.beginPath();c.arc(px,py,s.size*2,0,Math.PI*2);c.fill();c.restore();
     }

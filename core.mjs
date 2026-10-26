@@ -2,21 +2,22 @@
 export const VERSION = 1;
 export const DURATION = 12;
 export const SCHEDULE = [
-  ['2027-03-01T00:00:00+09:00', .12],
-  ['2027-03-15T00:00:00+09:00', .28],
-  ['2027-04-01T00:00:00+09:00', .50],
-  ['2027-04-12T00:00:00+09:00', .72],
-  ['2027-04-20T00:00:00+09:00', .90],
-  ['2027-04-24T00:00:00+09:00', 1],
+  ['2026-11-01T00:00:00+09:00', 0],
+  ['2027-04-23T00:00:00+09:00', 1],
 ];
 export const LINKS = { artist: null, music: null, ticket: null, album: null };
 export const SHARE_TEXT = '私の撮った月の光が、CDの盤面デザインの一部に。\n山形りお「ひかりは巡る」\n2027年4月24日（土）青山 月見ル君想フ\n#山形りお #ひかりは巡る';
 export const clamp = (n, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, n));
+// One campaign phase per Japan calendar day, independent of submission count.
 export function phaseAt(date = new Date()) {
-  let phase = .06;
-  for (const [at, value] of SCHEDULE) if (+date >= Date.parse(at)) phase = value;
-  return phase;
+  const day=86400000,offset=9*3600000;
+  const current=Math.floor((+date+offset)/day);
+  const start=Math.floor((Date.parse(SCHEDULE[0][0])+offset)/day);
+  const end=Math.floor((Date.parse(SCHEDULE[1][0])+offset)/day);
+  return clamp((current-start)/(end-start));
 }
+// A small personal addition in this video only; never persisted to the calendar.
+export const personalPhase = phase => clamp(phase)+(1-clamp(phase))*.025;
 export function random(seed) {
   let a = seed >>> 0;
   return () => { a += 0x6D2B79F5; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };

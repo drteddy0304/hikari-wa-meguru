@@ -1,5 +1,5 @@
-import { clamp, detectMoon, extractLight, phaseAt, recordingType, SHARE_TEXT, LINKS } from './core.mjs';
-import { createScene, drawScene } from './render.mjs';
+import { clamp, detectMoon, extractLight, phaseAt, recordingType, SHARE_TEXT, LINKS } from './core.mjs?v=calendar-nov-apr';
+import { createScene, drawScene } from './render.mjs?v=calendar-nov-apr';
 import { recordScene, saveFile } from './media.mjs';
 import { TRACKS } from './tracks.mjs';
 import { prepareMusic, availableTracks, chooseTrack, unlockMusic, suspendMusic } from './music.mjs';
@@ -75,5 +75,5 @@ $('share-x-web').href=xWebURL;
 $('share-text').value=SHARE_TEXT;
 $('copy-text').onclick=async()=>{try{await navigator.clipboard.writeText(SHARE_TEXT);message('投稿文とハッシュタグをコピーしました。');}catch{$('share-text').hidden=false;$('share-text').focus();$('share-text').select();message('自動コピーを利用できません。選択された投稿文を手動でコピーしてください。');}};
 for(const [container,keys] of [['artist-links',[['artist','山形りおの紹介'],['music','楽曲を聴く']]],['event-links',[['ticket','チケット購入'],['album','ミニアルバム情報']]]])for(const [key,label] of keys){if(!LINKS[key])continue;const el=document.createElement('a');el.textContent=LINKS[key]?`${label} ↗`:`${label} · 公式リンク準備中`;if(LINKS[key]){el.href=LINKS[key];el.target='_blank';el.rel='noopener noreferrer';}$(container).append(el);}
-changeMusic();drawScene(preview,createScene(null,null,0));
+changeMusic();drawScene(preview,createScene(null,null,selectedPhase()));
 window.addEventListener('pagehide',()=>{cancelAnimationFrame(animation);controller?.abort();suspendMusic();if(videoURL)URL.revokeObjectURL(videoURL);});
