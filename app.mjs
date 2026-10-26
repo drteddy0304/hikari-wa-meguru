@@ -56,14 +56,14 @@ function lock(value){recording=value;for(const id of ['photo-input','detect','mo
 $('make-video').onclick=async()=>{
   if(!scene||recording)return;const withMusic=true;
   if(!recordingType(globalThis.MediaRecorder,{audio:withMusic})){message('このブラウザでは音楽付き動画を生成できません。別の対応ブラウザでお試しください。',true);return;}
-  $('video').pause();cancelAnimationFrame(animation);lock(true);controller=new AbortController();preview.width=720;preview.height=1280;$('recording-progress').textContent='動画を生成しています。画面を開いたままお待ちください。';
+  $('video').pause();cancelAnimationFrame(animation);lock(true);controller=new AbortController();const recordingCanvas=document.createElement('canvas');recordingCanvas.width=720;recordingCanvas.height=1280;$('recording-progress').textContent='動画を生成しています。画面を開いたままお待ちください。';
   try{
     let audio=null;
     if(withMusic){const track=chooseTrack(TRACKS);$('recording-progress').textContent=`「${track.title}」の音源を準備しています…`;[,audio]=await Promise.all([unlockMusic(),prepareMusic(track,{signal:controller.signal})]);}
-    const result=await recordScene(preview,scene,{audio,signal:controller.signal,onProgress:p=>{$('recording-progress').textContent=`動画を生成中… ${Math.round(p*100)}% / 12秒・${audio?audio.track.title:'音楽なし'}`;}});if(videoURL)URL.revokeObjectURL(videoURL);videoBlob=result.blob;videoExt=result.extension;videoTrackId=result.music?.id || '';videoURL=URL.createObjectURL(videoBlob);$('video').src=videoURL;$('open-video').href=videoURL;$('download-video').href=videoURL;$('download-video').download=`ひかりは巡る-${light.seed.toString(16)}${videoTrackId?'-'+videoTrackId:''}.${videoExt}`;$('video-result').hidden=false;$('recording-progress').textContent=`生成完了 · ${result.extension.toUpperCase()} · ${result.music?result.music.title+'／音楽付き':'音楽なし'} · 720 × 1280 · ${(videoBlob.size/1024/1024).toFixed(1)}MB`;
+    const result=await recordScene(recordingCanvas,scene,{audio,signal:controller.signal,onProgress:p=>{$('recording-progress').textContent=`動画を生成中… ${Math.round(p*100)}% / 12秒・${audio?audio.track.title:'音楽なし'}`;}});if(videoURL)URL.revokeObjectURL(videoURL);videoBlob=result.blob;videoExt=result.extension;videoTrackId=result.music?.id || '';videoURL=URL.createObjectURL(videoBlob);$('video').src=videoURL;$('open-video').href=videoURL;$('download-video').href=videoURL;$('download-video').download=`ひかりは巡る-${light.seed.toString(16)}${videoTrackId?'-'+videoTrackId:''}.${videoExt}`;$('video-result').hidden=false;$('recording-progress').textContent=`生成完了 · ${result.extension.toUpperCase()} · ${result.music?result.music.title+'／音楽付き':'音楽なし'} · 720 × 1280 · ${(videoBlob.size/1024/1024).toFixed(1)}MB`;
     message(result.extension==='webm'?'WebM動画を生成しました。投稿先がWebM非対応の場合は別の対応ブラウザでお試しください。':'MP4動画を生成しました。下のプレーヤーで再生してから保存してください。');
   }catch(error){$('recording-progress').textContent='';message(error.name==='AbortError'?'動画生成を中止しました。もう一度生成できます。':error.message,error.name!=='AbortError');}
-  finally{suspendMusic();lock(false);controller=null;preview.width=540;preview.height=960;drawScene(preview,scene,videoBlob?12:0);}
+  finally{suspendMusic();lock(false);controller=null;drawScene(preview,scene,0);}
 };
 $('cancel-video').onclick=()=>controller?.abort();$('save-video').onclick=()=>{if(videoBlob)void save(videoBlob,videoExt,videoTrackId?'-'+videoTrackId:'');};
 $('video').onerror=()=>message('この端末で生成動画を再生できませんでした。別の対応ブラウザをご利用ください。',true);
