@@ -5,9 +5,9 @@
   <title>山形りお「ひかりは巡る」</title>
   <meta name="description" content="みんなの月の光で、CDの盤面が完成する。山形りお「ひかりは巡る」。あなたが撮った月の光を、CDの盤面デザインに。">
   <meta name="theme-color" content="#0c1722">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self'; frame-src https://script.google.com https://*.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
   <link rel="icon" href="./moon.svg" type="image/svg+xml"><link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.mjs?v=20261027-calendar"></script>
+  <script type="module" src="./app.mjs?v=20261027-materials"></script>
 </head>
 <body>
   <header class="site-header"><a href="#" class="wordmark"><span class="moon-mark" aria-hidden="true">◒</span><span>山形りお</span></a><a href="#live" class="header-date">2027.04.24 <span>ONEMAN LIVE ↗</span></a></header>
@@ -29,14 +29,16 @@
             <div class="light-info" id="light-info" aria-live="polite"></div>
             <button id="create" class="button primary" disabled>調整を反映する</button>
           </details>
-          <p class="privacy-note">写真はこの端末で処理し、外部へ送信しません。</p>
+          <p id="collection-note" class="privacy-note">現在は試作版です。写真はこの端末で処理し、外部へ送信しません。</p>
         </div>
         <div class="result" id="result">
           <div class="preview-top"><span id="preview-label">あなたの一枚のプレビュー</span><span>9 : 16</span></div>
           <div class="disc-window"><canvas id="result-canvas" width="540" height="960" aria-label="写真の光を帯びるCD盤面"></canvas></div>
           <p id="result-caption" class="small muted">月の写真を選ぶと、その光が盤面に重なります。</p>
           <div id="result-actions" hidden>
+            <div id="collection-consent" hidden><details><summary>写真と光の素材の利用について</summary><p id="consent-terms" class="small"></p><p id="consent-contact" class="small"></p></details><label class="small"><input id="consent-check" type="checkbox"> 自分で撮った月の写真です。上の利用条件に同意して届けます。</label></div>
             <button id="make-video" class="button primary">光を送る</button>
+            <p id="submission-status" role="status" class="small"></p><button id="retry-submission" class="text-button" hidden>素材の保存を再試行</button>
             <p id="recording-progress" role="status" class="small"></p><button id="cancel-video" class="text-button" hidden>動画の生成を中止</button>
             <div id="video-result" hidden><video id="video" controls playsinline preload="metadata" aria-label="生成した12秒の告知動画"></video><div class="save-grid"><button id="save-video" class="button primary">動画を保存 ↓</button><a id="open-video" class="button secondary" target="_blank" rel="noopener">動画を開く</a></div><a id="download-video" class="text-button" download>動画ファイルを直接ダウンロード ↓</a></div>
             <p id="format-note" class="small muted"></p>

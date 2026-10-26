@@ -3,10 +3,28 @@ import { createScene, drawScene } from './render.mjs?v=calendar-nov-apr';
 import { recordScene, saveFile } from './media.mjs';
 import { TRACKS } from './tracks.mjs';
 import { prepareMusic, availableTracks, chooseTrack, unlockMusic, suspendMusic } from './music.mjs';
+import { COLLECTION } from './collection-config.mjs';
+import { makeMaterialPackage, connectCollection } from './submission.mjs';
 const $=id=>document.getElementById(id);
 let photo=null,analysis=null,selection={x:.5,y:.5,radius:.12},light=null,scene=null,sample=false;
 let videoBlob=null,videoURL=null,videoExt=null,animation=0,revision=0,loading=0,controller=null,recording=false;
 let videoTrackId='';
+let sourceFile=null,materialPackage=null,collection=null,collectionConfig=null,receipt=null;
+if(COLLECTION.enabled && COLLECTION.endpoint){
+  $('collection-note').textContent='写真の受付状況を確認しています。';
+  try {
+    collection=connectCollection(COLLECTION.endpoint);
+    collection.config().then(config=>{
+      collectionConfig=config;
+      if(!config.enabled){$('collection-note').textContent='現在、写真の受付は停止しています。動画はこの端末で作れます。';return;}
+      $('collection-consent').hidden=false;
+      $('consent-terms').textContent=config.terms;
+      $('consent-contact').textContent=`運営：${config.operator} ／ 取下げの連絡先：${config.contact}（受付番号をお知らせください）`;
+      $('collection-note').textContent='同意して「光を送る」を押すと、写真と光の素材を運営の非公開Google Driveに保存します。位置情報は除去し、写真は最大4096pxに整えます。動画は送信しません。';
+      document.querySelector('footer span:last-child').textContent='写真の利用条件をご確認のうえご参加ください。';
+    }).catch(()=>{$('collection-note').textContent='写真の受付に接続できません。現在は端末内での動画生成のみです。';});
+  }catch{$('collection-note').textContent='写真の受付は準備中です。動画はこの端末で作れます。';}
+}
 const preview=$('result-canvas'),editor=$('photo-canvas');
 const message=(text,error=false)=>{$('status').textContent=text;$('status').classList.toggle('error',error);};
 const selectedPhase=()=>phaseAt();
@@ -17,7 +35,7 @@ $('make-video').disabled=recording||!availableTracks(TRACKS).length;
 $('format-note').textContent=recordingType(globalThis.MediaRecorder,{audio:true})?'':'このブラウザでは音楽付き動画を生成できません。別の対応ブラウザでお試しください。';
 }
 function changeMusic(){clearVideo();updateVideoButton();}
-function invalidate(){revision++;cancelAnimationFrame(animation);revokeResults();scene=null;}
+function invalidate(){revision++;cancelAnimationFrame(animation);revokeResults();scene=null;materialPackage=null;receipt=null;$('submission-status').textContent='';$('retry-submission').hidden=true;$('consent-check').checked=false;}
 function editorRect(){const scale=Math.min(editor.width/photo.width,editor.height/photo.height);return {w:photo.width*scale,h:photo.height*scale,x:(editor.width-photo.width*scale)/2,y:(editor.height-photo.height*scale)/2};}
 function drawEditor(){
   if(!photo)return;const c=editor.getContext('2d'),r=editorRect();c.fillStyle='#07101a';c.fillRect(0,0,editor.width,editor.height);c.drawImage(photo,r.x,r.y,r.w,r.h);
@@ -38,7 +56,7 @@ $('photo-input').onchange=async event=>{
   if(!file.type.startsWith('image/') && !/\.(heic|heif|jpe?g|png|webp|avif)$/i.test(file.name)){message('画像ファイルを選んでください。',true);return;}
   if(file.size>20*1024*1024){message('20MB以下の写真を選んでください。',true);return;}
   const url=URL.createObjectURL(file),image=new Image();message('写真をこの端末で読み込んでいます…');
-  try{image.src=url;await image.decode();if(ticket!==loading)return;if(recording){message('動画生成中のため写真を切り替えませんでした。生成後に写真を選び直してください。');return;}if(image.naturalWidth*image.naturalHeight>48_000_000)throw new Error('写真が大きすぎます。4800万画素以下に縮小してお試しください。');const ratio=Math.min(1,1600/Math.max(image.naturalWidth,image.naturalHeight)),canvas=document.createElement('canvas');canvas.width=Math.round(image.naturalWidth*ratio);canvas.height=Math.round(image.naturalHeight*ratio);canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);setPhoto(canvas,false);if(light)void createResult();}
+  try{image.src=url;await image.decode();if(ticket!==loading)return;if(recording){message('動画生成中のため写真を切り替えませんでした。生成後に写真を選び直してください。');return;}if(image.naturalWidth*image.naturalHeight>48_000_000)throw new Error('写真が大きすぎます。4800万画素以下に縮小してお試しください。');const ratio=Math.min(1,1600/Math.max(image.naturalWidth,image.naturalHeight)),canvas=document.createElement('canvas');canvas.width=Math.round(image.naturalWidth*ratio);canvas.height=Math.round(image.naturalHeight*ratio);canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);setPhoto(canvas,false);sourceFile=file;if(light)void createResult();}
   catch(error){if(ticket===loading)message(error.message.includes('画素')?error.message:'この画像を読み込めませんでした。HEICなどが非対応の場合は、JPEG・PNGに変換して選び直してください。',true);}
   finally{URL.revokeObjectURL(url);}
 };
@@ -52,9 +70,10 @@ if(!light||recording)return;scene=createScene(photo,light,selectedPhase(),sample
 $('create').onclick=createResult;
 async function save(blob,ext,suffix=''){try{const result=await saveFile(blob,`ひかりは巡る-${light.seed.toString(16)}${suffix}.${ext}`);message(result==='cancelled'?'保存・共有をキャンセルしました。':result==='shared'?'共有画面を閉じました。選んだ保存先をご確認ください。':'ダウンロードを開始しました。端末のファイルをご確認ください。');}catch{message('保存を開始できませんでした。「動画を開く」から保存をお試しください。',true);}}
 
-function lock(value){recording=value;for(const id of ['photo-input','detect','moon-x','moon-y','moon-radius','create'])$(id).disabled=value;$('cancel-video').hidden=!value;updateVideoButton();}
+function lock(value){recording=value;for(const id of ['photo-input','detect','moon-x','moon-y','moon-radius','create','consent-check'])$(id).disabled=value;$('cancel-video').hidden=!value;updateVideoButton();}
 $('make-video').onclick=async()=>{
   if(!scene||recording)return;const withMusic=true;
+  if(collectionConfig?.enabled&&!$('consent-check').checked){message('写真と光の素材の利用条件を確認し、同意してください。',true);return;}
   if(!recordingType(globalThis.MediaRecorder,{audio:withMusic})){message('このブラウザでは音楽付き動画を生成できません。別の対応ブラウザでお試しください。',true);return;}
   $('video').pause();cancelAnimationFrame(animation);lock(true);controller=new AbortController();const recordingCanvas=document.createElement('canvas');recordingCanvas.width=720;recordingCanvas.height=1280;$('recording-progress').textContent='動画を生成しています。画面を開いたままお待ちください。';
   try{
@@ -62,10 +81,26 @@ $('make-video').onclick=async()=>{
     if(withMusic){const track=chooseTrack(TRACKS);$('recording-progress').textContent=`「${track.title}」の音源を準備しています…`;[,audio]=await Promise.all([unlockMusic(),prepareMusic(track,{signal:controller.signal})]);}
     const result=await recordScene(recordingCanvas,scene,{audio,signal:controller.signal,onProgress:p=>{$('recording-progress').textContent=`動画を生成中… ${Math.round(p*100)}% / 12秒・${audio?audio.track.title:'音楽なし'}`;}});if(videoURL)URL.revokeObjectURL(videoURL);videoBlob=result.blob;videoExt=result.extension;videoTrackId=result.music?.id || '';videoURL=URL.createObjectURL(videoBlob);$('video').src=videoURL;$('open-video').href=videoURL;$('download-video').href=videoURL;$('download-video').download=`ひかりは巡る-${light.seed.toString(16)}${videoTrackId?'-'+videoTrackId:''}.${videoExt}`;$('video-result').hidden=false;$('recording-progress').textContent=`生成完了 · ${result.extension.toUpperCase()} · ${result.music?result.music.title+'／音楽付き':'音楽なし'} · 720 × 1280 · ${(videoBlob.size/1024/1024).toFixed(1)}MB`;
     message(result.extension==='webm'?'WebM動画を生成しました。投稿先がWebM非対応の場合は別の対応ブラウザでお試しください。':'MP4動画を生成しました。下のプレーヤーで再生してから保存してください。');
+    if(collectionConfig?.enabled&&!receipt){
+      try{
+        $('cancel-video').hidden=true;$('retry-submission').hidden=true;
+        $('submission-status').textContent='写真と光の素材を保存しています…';
+        materialPackage ||= await makeMaterialPackage(sourceFile,light,{termsVersion:collectionConfig.termsVersion});
+        receipt=await collection.send(materialPackage);
+        $('submission-status').textContent=`光を受け取りました。受付番号：${receipt.id}（取下げ時にお知らせください）`;
+      }catch(error){$('submission-status').textContent=`素材の保存は確認できませんでした。${error.message} 動画は保存できます。`;$('retry-submission').hidden=false;}
+    }
   }catch(error){$('recording-progress').textContent='';message(error.name==='AbortError'?'動画生成を中止しました。もう一度生成できます。':error.message,error.name!=='AbortError');}
   finally{suspendMusic();lock(false);controller=null;drawScene(preview,scene,0);}
 };
 $('cancel-video').onclick=()=>controller?.abort();$('save-video').onclick=()=>{if(videoBlob)void save(videoBlob,videoExt,videoTrackId?'-'+videoTrackId:'');};
+$('retry-submission').onclick=async()=>{
+  if(recording||!collectionConfig?.enabled||!$('consent-check').checked)return;
+  lock(true);$('cancel-video').hidden=true;$('retry-submission').hidden=true;
+  try{materialPackage ||= await makeMaterialPackage(sourceFile,light,{termsVersion:collectionConfig.termsVersion});receipt=await collection.send(materialPackage);$('submission-status').textContent=`光を受け取りました。受付番号：${receipt.id}`;}
+  catch(error){$('submission-status').textContent=error.message;$('retry-submission').hidden=false;}
+  finally{lock(false);}
+};
 $('video').onerror=()=>message('この端末で生成動画を再生できませんでした。別の対応ブラウザをご利用ください。',true);
 const xWebURL='https://x.com/intent/tweet?text='+encodeURIComponent(SHARE_TEXT);
 const mobileX=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
