@@ -20,8 +20,8 @@ if(COLLECTION.enabled && COLLECTION.endpoint){
       $('collection-consent').hidden=false;
       $('consent-contact').hidden=!config.operator&&!config.contact;
       $('consent-contact').textContent=[config.operator?`運営：${config.operator}`:'',config.contact?`取下げの連絡先：${config.contact}（受付番号をお知らせください）`:''].filter(Boolean).join(' ／ ');
-      const storage=config.provider==='dropbox'?'Dropbox':'Google Drive';
-      $('collection-note').textContent=`「光を送る」で写真と調整済みの光素材を非公開${storage}に保存します。写真の位置情報は除去します。`;
+      $('collection-note').textContent='';
+      $('collection-note').hidden=true;
       document.querySelector('footer span:last-child').textContent='写真の利用条件をご確認のうえご参加ください。';
     }).catch(()=>{$('collection-note').textContent='写真の受付に接続できません。現在は端末内での動画生成のみです。';});
   }catch{$('collection-note').textContent='写真の受付は準備中です。動画はこの端末で作れます。';}
