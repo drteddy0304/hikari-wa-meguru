@@ -154,7 +154,8 @@ function saveSubmission_(value,testOnly){
     if(!testOnly&&!publicConfig().enabled)throw Error('写真の受付は現在停止しています。');
     if(testOnly)ownerOnly_();
     const root=testOnly?'/connection-tests':'/submissions';
-    const digest=hex_(sha_(JSON.stringify(value.files))),base=root+'/'+value.id;
+    // google.script.run may reorder object properties between otherwise identical requests.
+    const digest=hex_(sha_(JSON.stringify(checked.blobs.map(b=>[b.getName(),contentHash_(b.getBytes())])))),base=root+'/'+value.id;
     const receipt=jsonBlob_('_complete.json',{schema:1,id:value.id,digest});
     const previous=metadata_(base+'/_complete.json');
     if(previous){if(previous.content_hash!==contentHash_(receipt.getBytes()))throw Error('同じ投稿番号の内容が異なります。');return {ok:true,id:value.id,duplicate:true};}
