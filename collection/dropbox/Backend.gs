@@ -62,21 +62,35 @@ function prepareDropboxConnection(){ownerOnly_();return locked_(()=>{
   return '連携URLを実行ログに表示しました。';
 });}
 function callback_(params){return locked_(()=>{
-  const p=properties_();let pending;try{pending=JSON.parse(p.getProperty('DBX_PENDING')||'null');}catch(_){}
+  const p=properties_();let pending,last;try{pending=JSON.parse(p.getProperty('DBX_PENDING')||'null');last=JSON.parse(p.getProperty('DBX_LAST_RESULT')||'null');}catch(_){}
+  const hash=typeof params.state==='string'?hex_(sha_(params.state)):'';
+  if(last&&last.stateHash===hash&&last.expires>Date.now())return last.message;
   if(!pending||pending.expires<Date.now()||typeof params.state!=='string'||hex_(sha_(params.state))!==pending.stateHash)throw Error('連携リンクの期限が切れたか、使用済みです。運営者に再発行を依頼してください。');
+  let stage='認証応答';
+  try{
   p.deleteProperty('DBX_PENDING');
   if(params.error||typeof params.code!=='string'||!params.code||params.code.length>2048)throw Error('連携は完了していません。');
   if(p.getProperty('DBX_REFRESH_TOKEN'))throw Error('接続済みです。');
+  stage='認証コード交換';
   const result=tokenRequest_({grant_type:'authorization_code',code:params.code,code_verifier:pending.verifier,client_id:required_('DBX_APP_KEY'),redirect_uri:required_('DBX_REDIRECT_URI')});
+  stage='専用アカウント照合';
   const account=rpc_('users/get_current_account',null,result.access_token);
   if(account.status!==200||account.data.email_verified!==true||String(account.data.email).toLowerCase()!==required_('EXPECTED_DROPBOX_EMAIL').toLowerCase()){
     rpc_('auth/token/revoke',null,result.access_token);throw Error('指定された企画専用アカウントではありません。運営者に新しい連携リンクを依頼してください。');
   }
+  stage='連携権限確認';
   const scopes=new Set(String(result.scope||'').split(' '));
   if(!result.refresh_token||DBX_SCOPES_.split(' ').some(s=>!scopes.has(s))||[...scopes].some(s=>!DBX_SCOPES_.split(' ').includes(s))){rpc_('auth/token/revoke',null,result.access_token);throw Error('連携権限を確認してください。');}
   p.setProperties({DBX_REFRESH_TOKEN:result.refresh_token,DBX_ACCOUNT_ID:account.data.account_id,ENABLED:'false'});
   CacheService.getScriptCache().remove('dbx-access');
-  return 'Dropboxの連携が完了しました。写真の受付はまだ停止中です。この画面を閉じて運営者にお知らせください。';
+  const message='Dropboxの連携が完了しました。写真の受付はまだ停止中です。この画面を閉じて運営者にお知らせください。';
+  p.setProperty('DBX_LAST_RESULT',JSON.stringify({stateHash:hash,expires:Date.now()+3600000,message}));return message;
+  }catch(error){
+    // Do not persist raw provider errors, codes, tokens or personal information.
+    const message='連携は完了していません（'+stage+'）。この表示を運営者にお知らせください。';
+    p.setProperty('DBX_LAST_RESULT',JSON.stringify({stateHash:hash,expires:Date.now()+3600000,message}));
+    throw Error(message);
+  }
 });}
 function doGet(e){
   const params=e&&e.parameter||{};
