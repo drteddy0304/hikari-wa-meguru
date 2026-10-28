@@ -17,6 +17,14 @@ function diagnoseDropboxTransport(){
   }
 }
 function properties_(){return PropertiesService.getScriptProperties();}
+function startCollection(){
+  ownerOnly_();
+  if(!accessConfirmed_())throw Error('保存先の設定が未完了です。');
+  const account=rpc_('users/get_current_account');
+  if(account.status!==200||account.data.account_id!==required_('DBX_ACCOUNT_ID')||String(account.data.email).toLowerCase()!==required_('EXPECTED_DROPBOX_EMAIL').toLowerCase())throw Error('保存先の照合に失敗しました。');
+  properties_().setProperties({ENABLED:'true',TERMS_APPROVED:'true',OPERATOR:'',CONTACT:''});
+  console.log('写真と光素材の受付を開始しました。運営名・連絡先は公開しません。');
+}
 function accessConfirmed_(){const p=properties_();return p.getProperty('DBX_ACCESS_MODE')==='app_folder'||p.getProperty('DEDICATED_FULL_DROPBOX_CONFIRMED')==='true';}
 function locked_(fn){const l=LockService.getScriptLock();if(!l.tryLock(10000))throw Error('受付が混み合っています。時間をおいて再試行してください。');try{return fn();}finally{l.releaseLock();}}
 function ownerOnly_(){const u=Session.getActiveUser().getEmail();if(!u||u!==Session.getEffectiveUser().getEmail())throw Error('運営者だけが実行できます。');}
@@ -131,7 +139,7 @@ function doGet(e){
   const t=HtmlService.createTemplateFromFile('Bridge');t.nonce=/^[a-f0-9]{64}$/.test(params.nonce||'')?params.nonce:'';
   return t.evaluate().setTitle('ひかりは巡る・素材受付').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
-function publicConfig(){const p=properties_();return {enabled:p.getProperty('ENABLED')==='true'&&p.getProperty('TERMS_APPROVED')==='true'&&accessConfirmed_()&&!!p.getProperty('DBX_REFRESH_TOKEN')&&!!p.getProperty('OPERATOR')&&!!p.getProperty('CONTACT'),provider:'dropbox',operator:p.getProperty('OPERATOR')||'',contact:p.getProperty('CONTACT')||'',terms:TERMS_,termsVersion:TERMS_VERSION_};}
+function publicConfig(){const p=properties_();return {enabled:p.getProperty('ENABLED')==='true'&&p.getProperty('TERMS_APPROVED')==='true'&&accessConfirmed_()&&!!p.getProperty('DBX_REFRESH_TOKEN'),provider:'dropbox',operator:p.getProperty('OPERATOR')||'',contact:p.getProperty('CONTACT')||'',terms:TERMS_,termsVersion:TERMS_VERSION_};}
 function reserve_(bytes){
   const p=properties_(),day=Utilities.formatDate(new Date(),'Asia/Tokyo','yyyy-MM-dd');
   const total=Number(p.getProperty('RESERVED_BYTES')||0),max=Number(p.getProperty('MAX_BYTES')||1073741824),count=p.getProperty('DAY')===day?Number(p.getProperty('DAILY_COUNT')||0):0,limit=Number(p.getProperty('MAX_DAILY')||100);
