@@ -19,7 +19,7 @@ Dropboxで投稿フォルダを開き、フォルダ設定の「ダウンロー�
 
 認証情報はApps ScriptのScript Propertiesだけに保存。公開ソースやブラウザにトークンを置かない。App folder / account_info.read / files.metadata.read / files.content.writeのみ。普段のDropboxの他フォルダにはアクセスしない。
 
-`DBX_APP_KEY`, `EXPECTED_DROPBOX_EMAIL`, `DBX_ACCESS_MODE=app_folder`, `DBX_REDIRECT_URI` を運営側で設定。`prepareDropboxConnection` は所有者限定でPKCEリンクを発行する。既存接続は自動置換しない。`startCollection` は保存先を再照合し受付を開始する。停止は `ENABLED=false`。運営名・連絡先はユーザー指定で非表示。同意欄は保持。
+`DBX_APP_KEY`, `EXPECTED_DROPBOX_EMAIL`, `DBX_ACCESS_MODE=app_folder`, `DBX_REDIRECT_URI` を運営側で設定。`prepareDropboxConnection` は所有者限定でPKCEリンクを発行する。既存接続は自動置換しない。`startCollection` は保存先を再照合し受付を開始する。停止は `ENABLED=false`。運営名・連絡先はユーザー指定で非表示。チェック欄は設けず、送信ボタン直前に保存・制作利用の案内を表示する。
 
 新しいコードの公開には `node collection/dropbox/build.mjs <出力先>` で生成したCode.gs、Bridge.html、appsscript.jsonを使い、既存デプロイを新バージョンに更新する。GitHub側はcollection-config.mjsで接続する。
 
@@ -34,3 +34,5 @@ iPhone Safari／LINE内ブラウザ・Android実機は未検証。デスクト�
 ## 容量
 
 1投稿8MiB、累計予約1GiB、1日100件、Dropbox空き512MiBを確保。無料枠・容量上限で停止し、自動で有料契約にはしない。失敗時も予約を戻さないので上限に早く達する場合がある。大量の不正投稿を完全に防ぐ仕組みではない。
+
+通常の公開画面でもチェック欄なしでMP4生成から保存完了まで確認済み。人工画像テストの受付番号 7ce0d069-1488-49eb-9558-522cfabc68ec は実参加素材として採用しない。
