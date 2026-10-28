@@ -99,12 +99,20 @@ function callback_(params){return locked_(()=>{
   stage='専用アカウント照合';
   const account=rpc_('users/get_current_account',null,result.access_token);
   if(account.status!==200||account.data.email_verified!==true||String(account.data.email).toLowerCase()!==required_('EXPECTED_DROPBOX_EMAIL').toLowerCase()){
-    rpc_('auth/token/revoke',null,result.access_token);throw Error('指定された企画専用アカウントではありません。運営者に新しい連携リンクを依頼してください。');
+    throw Error('指定された企画専用アカウントではありません。');
   }
   stage='連携権限確認';
-  const scopes=new Set(String(result.scope||'').split(' '));
-  if(!result.refresh_token||DBX_SCOPES_.split(' ').some(s=>!scopes.has(s))||[...scopes].some(s=>!DBX_SCOPES_.split(' ').includes(s))){rpc_('auth/token/revoke',null,result.access_token);throw Error('連携権限を確認してください。');}
+  // Keep verified-account credentials separate from the active connection.
+  // A validation failure must not silently revoke the owner's authorization.
+  if(result.refresh_token)p.setProperty('DBX_RECOVERY',JSON.stringify({refreshToken:result.refresh_token,accountId:account.data.account_id,scope:typeof result.scope==='string'?result.scope:null,receivedAt:Date.now()}));
+  const scopes=new Set(typeof result.scope==='string'?result.scope.trim().split(/\s+/).filter(Boolean):[]);
+  const missing=DBX_SCOPES_.split(' ').filter(s=>!scopes.has(s));
+  const extra=[...scopes].filter(s=>!DBX_SCOPES_.split(' ').includes(s));
+  p.setProperty('DBX_SCOPE_DIAGNOSTIC',JSON.stringify({hasRefreshToken:!!result.refresh_token,scopeIsString:typeof result.scope==='string',missing,extra:extra.map(s=>/^[a-z_.]{1,80}$/.test(s)?s:'unrecognized'),at:Date.now()}));
+  if(!result.refresh_token||missing.length||extra.length)throw Error('連携権限を確認してください。');
+  stage='接続情報保存';
   p.setProperties({DBX_REFRESH_TOKEN:result.refresh_token,DBX_ACCOUNT_ID:account.data.account_id,ENABLED:'false'});
+  p.deleteProperty('DBX_RECOVERY');
   CacheService.getScriptCache().remove('dbx-access');
   const message='Dropboxの連携が完了しました。写真の受付はまだ停止中です。この画面を閉じて運営者にお知らせください。';
   p.setProperty('DBX_LAST_RESULT',JSON.stringify({stateHash:hash,expires:Date.now()+3600000,message}));return message;
