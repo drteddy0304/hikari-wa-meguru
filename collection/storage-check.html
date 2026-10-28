@@ -1,0 +1,24 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="robots" content="noindex"><title>運営者用 保存検証</title>
+<h1>運営者用・人工画像の保存検証</h1><p>受付サーバー所有者のGoogleログインが必要です。一般参加者の写真は使いません。</p><button id="run">人工画像で保存を検証</button><pre id="log"></pre><div id="images"></div>
+<script type="module">
+import {makeMaterialPackage,connectCollection} from '../submission.mjs';
+import {detectMoon,extractLight} from '../core.mjs';
+import {demoPhoto} from '../render.mjs';
+const endpoint='https://script.google.com/macros/s/AKfycbxbh_Zb87z8hQJun2I4LappvzWKz8uCHDypET8XnZs8kRvyJRmmPvtD_cSxsfogjVOSIw/exec';
+document.querySelector('#run').onclick=async()=>{
+ const log=document.querySelector('#log'),button=document.querySelector('#run');button.disabled=true;log.textContent='接続中…\n';
+ const client=connectCollection(endpoint,{ownerTest:true,timeout:90000});
+ try{
+  const config=await client.config();log.textContent+='受付接続: '+config.provider+'\n';
+  const canvas=demoPhoto(),data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),detected=detectMoon(data);
+  const adjusted={...detected,x:detected.x+.015,radius:detected.radius*.85};
+  const light=extractLight(data,adjusted),original=await new Promise(r=>canvas.toBlob(r,'image/png'));
+  const value=await makeMaterialPackage(new File([original],'synthetic.png',{type:'image/png'}),light,{termsVersion:config.termsVersion});
+  for(const f of value.files.filter(f=>f.name!=='light.json')){const img=new Image();img.alt=f.name;img.style.maxWidth='200px';img.src='data:'+(f.name.endsWith('png')?'image/png':'image/jpeg')+';base64,'+f.base64;document.querySelector('#images').append(img);}
+  log.textContent+='位置・半径を調整済みの素材を送信…\n';
+  const first=await client.send(value),second=await client.send(value);
+  if(!first.ok||!second.duplicate)throw Error('保存または再送の検証失敗');
+  log.textContent+='PASS 写真・調整済み光素材の保存\nPASS 再送で重複なし\n投稿番号: '+value.id+'\n調整値: '+JSON.stringify(light.selection);
+ }catch(e){log.textContent+='ERROR '+e.message;}finally{client.close();button.disabled=false;}
+};
+</script></html>

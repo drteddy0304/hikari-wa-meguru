@@ -1,13 +1,14 @@
 <!doctype html><html lang="ja"><head><base target="_top"><meta charset="utf-8"></head><body>
 <p>ひかりは巡る・素材受付</p><p id="status">サイトからの接続を待っています。</p>
 <script>
-const nonce=<?= JSON.stringify(nonce) ?>;
+const nonce=<?!= JSON.stringify(nonce) ?>;
 const origin='https://drteddy0304.github.io';
 function send(type,data){window.top.postMessage({channel:'hikari-materials-v1',nonce,type,...data},origin);}
 window.addEventListener('message',e=>{
   if(e.origin!==origin||e.source!==window.top||e.data?.nonce!==nonce||e.data?.channel!=='hikari-materials-v1')return;
   if(e.data.type==='config')google.script.run.withSuccessHandler(config=>send('config',{config})).withFailureHandler(()=>send('error',{message:'受付情報を取得できませんでした。'})).publicConfig();
   if(e.data.type==='submit')google.script.run.withSuccessHandler(receipt=>send('receipt',{receipt})).withFailureHandler(error=>send('error',{message:error.message||'保存できませんでした。'})).submitPublic(e.data.payload);
+  if(e.data.type==='owner-test')google.script.run.withSuccessHandler(receipt=>send('receipt',{receipt})).withFailureHandler(error=>send('error',{message:error.message||'保存できませんでした。'})).testDropboxSave(e.data.payload);
 });
 if(nonce)send('ready',{});
 </script></body></html>

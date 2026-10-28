@@ -32,7 +32,7 @@ export async function makeMaterialPackage(file, light, {id=crypto.randomUUID(),t
   } finally {URL.revokeObjectURL(url);}
 }
 
-export function connectCollection(endpoint,{timeout=45000}={}) {
+export function connectCollection(endpoint,{timeout=45000,ownerTest=false}={}) {
   const url=new URL(endpoint);
   if(url.origin!=='https://script.google.com'||!/^\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url.pathname))throw Error('受付先の設定が不正です。');
   const nonce=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
@@ -58,12 +58,12 @@ export function connectCollection(endpoint,{timeout=45000}={}) {
     await ready;if(pending)throw Error('保存処理中です。');
     return new Promise((resolve,reject)=>{
       const timer=setTimeout(()=>{pending=null;reject(Error('保存結果を確認できませんでした。同じ写真で再送すると重複を避けて確認できます。'));},timeout);
-      pending={type:type==='submit'?'receipt':'config',resolve:v=>{clearTimeout(timer);resolve(v);},reject:e=>{clearTimeout(timer);reject(e);}};
+      pending={type:type==='config'?'config':'receipt',resolve:v=>{clearTimeout(timer);resolve(v);},reject:e=>{clearTimeout(timer);reject(e);}};
       remote.postMessage({channel:'hikari-materials-v1',nonce,type,payload},remoteOrigin);
     });
   }
   return {config:async()=> (await request('config')).config,send:async payload=>{
-    const result=(await request('submit',payload)).receipt;
+    const result=(await request(ownerTest?'owner-test':'submit',payload)).receipt;
     if(!result?.ok||result.id!==payload.id)throw Error('受付番号を確認できませんでした。');return result;
   },close:()=>cleanup()};
 }
