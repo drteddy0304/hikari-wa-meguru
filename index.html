@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#0c1722">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self'; frame-src https://script.google.com https://*.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'">
   <link rel="icon" href="./moon.svg" type="image/svg+xml"><link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.mjs?v=20261029-simple"></script>
+  <script type="module" src="./app.mjs?v=20261029-clean"></script>
 </head>
 <body>
   <header class="site-header"><a href="#" class="wordmark"><span class="moon-mark" aria-hidden="true">◒</span><span>山形りお</span></a><a href="#live" class="header-date">2027.04.24 <span>ONEMAN LIVE ↗</span></a></header>
@@ -36,7 +36,6 @@
           <div class="disc-window"><canvas id="result-canvas" width="540" height="960" aria-label="写真の光を帯びるCD盤面"></canvas></div>
           <p id="result-caption" class="small muted">月の写真を選ぶと、その光が盤面に重なります。</p>
           <div id="result-actions" hidden>
-            <div id="collection-consent" hidden><p id="consent-terms" class="small">送った写真と調整済みの光素材は保存し、CD盤面や告知物の制作・加工・商用利用に使います。ご自身で撮影した月の写真をお送りください。</p><p id="consent-contact" class="small" hidden></p></div>
             <button id="make-video" class="button primary">光を送る</button>
             <p id="submission-status" role="status" class="small"></p><button id="retry-submission" class="text-button" hidden>素材の保存を再試行</button>
             <p id="recording-progress" role="status" class="small"></p><button id="cancel-video" class="text-button" hidden>動画の生成を中止</button>

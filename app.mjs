@@ -17,12 +17,8 @@ if(COLLECTION.enabled && COLLECTION.endpoint){
     collection.config().then(config=>{
       collectionConfig=config;
       if(!config.enabled){$('collection-note').textContent='現在、写真の受付は停止しています。動画はこの端末で作れます。';return;}
-      $('collection-consent').hidden=false;
-      $('consent-contact').hidden=!config.operator&&!config.contact;
-      $('consent-contact').textContent=[config.operator?`運営：${config.operator}`:'',config.contact?`取下げの連絡先：${config.contact}（受付番号をお知らせください）`:''].filter(Boolean).join(' ／ ');
       $('collection-note').textContent='';
       $('collection-note').hidden=true;
-      document.querySelector('footer span:last-child').textContent='写真の利用条件をご確認のうえご参加ください。';
     }).catch(()=>{$('collection-note').textContent='写真の受付に接続できません。現在は端末内での動画生成のみです。';});
   }catch{$('collection-note').textContent='写真の受付は準備中です。動画はこの端末で作れます。';}
 }
