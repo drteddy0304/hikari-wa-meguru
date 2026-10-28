@@ -20,7 +20,8 @@ if(COLLECTION.enabled && COLLECTION.endpoint){
       $('collection-consent').hidden=false;
       $('consent-terms').textContent=config.terms;
       $('consent-contact').textContent=`運営：${config.operator} ／ 取下げの連絡先：${config.contact}（受付番号をお知らせください）`;
-      $('collection-note').textContent='同意して「光を送る」を押すと、写真と光の素材を運営の非公開Google Driveに保存します。位置情報は除去し、写真は最大4096pxに整えます。動画は送信しません。';
+      const storage=config.provider==='dropbox'?'Dropbox':'Google Drive';
+      $('collection-note').textContent=`同意して「光を送る」を押すと、写真と調整済みの光素材を運営の非公開${storage}に保存します。位置情報は除去し、写真は最大4096pxに整えます。動画は送信しません。`;
       document.querySelector('footer span:last-child').textContent='写真の利用条件をご確認のうえご参加ください。';
     }).catch(()=>{$('collection-note').textContent='写真の受付に接続できません。現在は端末内での動画生成のみです。';});
   }catch{$('collection-note').textContent='写真の受付は準備中です。動画はこの端末で作れます。';}
