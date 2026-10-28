@@ -18,11 +18,10 @@ if(COLLECTION.enabled && COLLECTION.endpoint){
       collectionConfig=config;
       if(!config.enabled){$('collection-note').textContent='現在、写真の受付は停止しています。動画はこの端末で作れます。';return;}
       $('collection-consent').hidden=false;
-      $('consent-terms').textContent=config.terms;
       $('consent-contact').hidden=!config.operator&&!config.contact;
       $('consent-contact').textContent=[config.operator?`運営：${config.operator}`:'',config.contact?`取下げの連絡先：${config.contact}（受付番号をお知らせください）`:''].filter(Boolean).join(' ／ ');
       const storage=config.provider==='dropbox'?'Dropbox':'Google Drive';
-      $('collection-note').textContent=`同意して「光を送る」を押すと、写真と調整済みの光素材を運営の非公開${storage}に保存します。位置情報は除去し、写真は最大4096pxに整えます。動画は送信しません。`;
+      $('collection-note').textContent=`「光を送る」で写真と調整済みの光素材を非公開${storage}に保存します。写真の位置情報は除去します。`;
       document.querySelector('footer span:last-child').textContent='写真の利用条件をご確認のうえご参加ください。';
     }).catch(()=>{$('collection-note').textContent='写真の受付に接続できません。現在は端末内での動画生成のみです。';});
   }catch{$('collection-note').textContent='写真の受付は準備中です。動画はこの端末で作れます。';}
@@ -37,7 +36,7 @@ $('make-video').disabled=recording||!availableTracks(TRACKS).length;
 $('format-note').textContent=recordingType(globalThis.MediaRecorder,{audio:true})?'':'このブラウザでは音楽付き動画を生成できません。別の対応ブラウザでお試しください。';
 }
 function changeMusic(){clearVideo();updateVideoButton();}
-function invalidate(){revision++;cancelAnimationFrame(animation);revokeResults();scene=null;materialPackage=null;receipt=null;$('submission-status').textContent='';$('retry-submission').hidden=true;$('consent-check').checked=false;}
+function invalidate(){revision++;cancelAnimationFrame(animation);revokeResults();scene=null;materialPackage=null;receipt=null;$('submission-status').textContent='';$('retry-submission').hidden=true;}
 function editorRect(){const scale=Math.min(editor.width/photo.width,editor.height/photo.height);return {w:photo.width*scale,h:photo.height*scale,x:(editor.width-photo.width*scale)/2,y:(editor.height-photo.height*scale)/2};}
 function drawEditor(){
   if(!photo)return;const c=editor.getContext('2d'),r=editorRect();c.fillStyle='#07101a';c.fillRect(0,0,editor.width,editor.height);c.drawImage(photo,r.x,r.y,r.w,r.h);
@@ -72,10 +71,9 @@ if(!light||recording)return;scene=createScene(photo,light,selectedPhase(),sample
 $('create').onclick=createResult;
 async function save(blob,ext,suffix=''){try{const result=await saveFile(blob,`ひかりは巡る-${light.seed.toString(16)}${suffix}.${ext}`);message(result==='cancelled'?'保存・共有をキャンセルしました。':result==='shared'?'共有画面を閉じました。選んだ保存先をご確認ください。':'ダウンロードを開始しました。端末のファイルをご確認ください。');}catch{message('保存を開始できませんでした。「動画を開く」から保存をお試しください。',true);}}
 
-function lock(value){recording=value;for(const id of ['photo-input','detect','moon-x','moon-y','moon-radius','create','consent-check'])$(id).disabled=value;$('cancel-video').hidden=!value;updateVideoButton();}
+function lock(value){recording=value;for(const id of ['photo-input','detect','moon-x','moon-y','moon-radius','create'])$(id).disabled=value;$('cancel-video').hidden=!value;updateVideoButton();}
 $('make-video').onclick=async()=>{
   if(!scene||recording)return;const withMusic=true;
-  if(collectionConfig?.enabled&&!$('consent-check').checked){message('写真と光の素材の利用条件を確認し、同意してください。',true);return;}
   if(!recordingType(globalThis.MediaRecorder,{audio:withMusic})){message('このブラウザでは音楽付き動画を生成できません。別の対応ブラウザでお試しください。',true);return;}
   $('video').pause();cancelAnimationFrame(animation);lock(true);controller=new AbortController();const recordingCanvas=document.createElement('canvas');recordingCanvas.width=720;recordingCanvas.height=1280;$('recording-progress').textContent='動画を生成しています。画面を開いたままお待ちください。';
   try{
@@ -97,7 +95,7 @@ $('make-video').onclick=async()=>{
 };
 $('cancel-video').onclick=()=>controller?.abort();$('save-video').onclick=()=>{if(videoBlob)void save(videoBlob,videoExt,videoTrackId?'-'+videoTrackId:'');};
 $('retry-submission').onclick=async()=>{
-  if(recording||!collectionConfig?.enabled||!$('consent-check').checked)return;
+  if(recording||!collectionConfig?.enabled)return;
   lock(true);$('cancel-video').hidden=true;$('retry-submission').hidden=true;
   try{materialPackage ||= await makeMaterialPackage(sourceFile,light,{termsVersion:collectionConfig.termsVersion});receipt=await collection.send(materialPackage);$('submission-status').textContent=`光を受け取りました。受付番号：${receipt.id}`;}
   catch(error){$('submission-status').textContent=error.message;$('retry-submission').hidden=false;}

@@ -1,5 +1,7 @@
 # 写真と光の素材受付
 
+**現行は [Dropbox保存](dropbox/README.md)。以下は採用しなかったGoogle Drive／Sheets案の参考資料で、公開中の構成ではありません。**
+
 Google Drive（非公開）＋Google Sheets＋Apps Script。課金APIや外部DBなし。
 **現時点では公開サイトの収集は無効。Googleの実保存・ZIP書き出し・クロスサイト接続は未検証。**
 
