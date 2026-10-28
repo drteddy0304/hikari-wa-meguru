@@ -1,5 +1,21 @@
 // Deploy the generated Code.gs with ../Bridge.html. Private settings live in Script Properties.
 const DBX_SCOPES_='account_info.read files.metadata.read files.content.write';
+// Uses deliberately invalid credentials; never reads or prints participant data or secrets.
+function diagnoseDropboxTransport(){
+  ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL);
+  ownerOnly_();
+  const verifier='dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+  console.log('PKCE RFC7636 vector: '+(base64url_(sha_(verifier))==='E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'));
+  const payload={grant_type:'authorization_code',client_id:required_('DBX_APP_KEY'),code:'diagnostic-invalid-code',code_verifier:verifier,redirect_uri:required_('DBX_REDIRECT_URI')};
+  for(const host of ['api.dropboxapi.com','api.dropbox.com']){
+    try{
+      const r=UrlFetchApp.fetch('https://'+host+'/oauth2/token',{method:'post',payload,muteHttpExceptions:true,followRedirects:false});
+      let data={};try{data=JSON.parse(r.getContentText());}catch(_){}
+      const category=['invalid_grant','invalid_client','invalid_request','unsupported_grant_type'].includes(data.error)?data.error:'unexpected_response';
+      console.log(host+' HTTP '+r.getResponseCode()+' '+category);
+    }catch(e){console.log(host+' transport exception: '+String(e.message).replace(/https?:\/\/\S+/g,'[endpoint]').slice(0,350));}
+  }
+}
 function properties_(){return PropertiesService.getScriptProperties();}
 function locked_(fn){const l=LockService.getScriptLock();if(!l.tryLock(10000))throw Error('受付が混み合っています。時間をおいて再試行してください。');try{return fn();}finally{l.releaseLock();}}
 function ownerOnly_(){const u=Session.getActiveUser().getEmail();if(!u||u!==Session.getEffectiveUser().getEmail())throw Error('運営者だけが実行できます。');}
@@ -48,7 +64,14 @@ function upload_(path,blob){
 function jsonBlob_(name,value){return Utilities.newBlob(JSON.stringify(value,null,2),'application/json',name);}
 
 // Editor-only entry: checks identity even though it is visible to google.script.run.
-function prepareDropboxConnection(){ownerOnly_();return locked_(()=>{
+function prepareDropboxConnection(){
+  ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL);
+  ownerOnly_();
+  // Fail locally before asking the remote owner to authorize anything.
+  const probe=UrlFetchApp.fetch('https://api.dropboxapi.com/oauth2/token',{method:'post',payload:{grant_type:'authorization_code',client_id:required_('DBX_APP_KEY'),code:'diagnostic-invalid-code',code_verifier:'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk',redirect_uri:required_('DBX_REDIRECT_URI')},muteHttpExceptions:true,followRedirects:false});
+  let probeData;try{probeData=JSON.parse(probe.getContentText());}catch(_){throw Error('通信の事前確認に失敗しました。リンクは発行していません。');}
+  if(probe.getResponseCode()!==400||probeData.error!=='invalid_grant')throw Error('通信の事前確認に失敗しました。リンクは発行していません。');
+  return locked_(()=>{
   const p=properties_();if(p.getProperty('ENABLED')==='true'||p.getProperty('DBX_REFRESH_TOKEN'))throw Error('既存の接続を自動で置き換えることはできません。');
   if(p.getProperty('DEDICATED_FULL_DROPBOX_CONFIRMED')!=='true')throw Error('Dropbox App Consoleで企画専用アカウントのFull Dropbox設定を確認してください。');
   const key=required_('DBX_APP_KEY'),redirect=required_('DBX_REDIRECT_URI'),expected=required_('EXPECTED_DROPBOX_EMAIL');
