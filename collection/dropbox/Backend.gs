@@ -17,8 +17,16 @@ function prepareMaterialRoot_(testOnly){
   return root;
 }
 function prepareMaterialBase_(root,id){
-  const base=root+'/投稿_'+id;
+  const p=properties_(),group=root===materialRoot_(true)?'TEST':'PUBLIC',key='MATERIAL_NUMBER_'+group+'_'+id;
+  let number=Number(p.getProperty(key)||0);
+  if(!number){
+    number=Number(p.getProperty('MATERIAL_COUNTER_'+group)||0)+1;
+    while(metadata_(root+'/投稿'+number))number++;
+    p.setProperties({[key]:String(number),['MATERIAL_COUNTER_'+group]:String(number)});
+  }
+  const base=root+'/投稿'+number;
   moveMaterial_(root+'/'+id,base);
+  moveMaterial_(root+'/投稿_'+id,base);
   if(metadata_(base)){
     ensureFolder_(base+'/制作・管理データ');
     Object.keys(MATERIAL_NAMES_).forEach(name=>moveMaterial_(base+'/'+name,base+'/'+MATERIAL_NAMES_[name]));
