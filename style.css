@@ -8,3 +8,5 @@
 .disc-window{order:0;width:100%;max-width:300px;height:300px;overflow:hidden;position:relative;margin:auto}#result-canvas{position:absolute;width:480px;max-width:none;left:50%;top:-200px;transform:translateX(-50%)}
 
 #make-video{width:100%}
+
+.live-flyer{display:block;width:100%;margin:0 auto 32px;line-height:0}.live-flyer img{display:block;width:100%;height:auto}.live-time,.live-ticket{font-family:sans-serif;font-size:14px;letter-spacing:.04em}.live-ticket small{font-size:12px}.live-info .destination-links{justify-content:center;margin-top:24px}.live-info .destination-links a{display:block;padding:12px 24px;border:1px solid var(--gold);border-radius:3px}.live-info .destination-links a:hover{background:#d3c59e18}
