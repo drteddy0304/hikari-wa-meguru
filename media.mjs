@@ -78,7 +78,7 @@ export function download(blob,name) {
 export async function saveFile(blob,name) {
   const file=new File([blob],name,{type:blob.type.split(';')[0]});
   if(navigator.share && navigator.canShare?.({files:[file]})){
-    try{await navigator.share({files:[file],title:'山形りお「ひかりは巡る」'});return 'shared';}
+    try{await navigator.share({files:[file],title:'山形りお「ひかりはめぐる」'});return 'shared';}
     catch(error){if(error.name==='AbortError')return 'cancelled';}
   }
   download(blob,name);return 'download';

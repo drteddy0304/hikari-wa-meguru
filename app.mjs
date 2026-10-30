@@ -1,6 +1,6 @@
-import { clamp, detectMoon, extractLight, phaseAt, recordingType, SHARE_TEXT, LINKS } from './core.mjs?v=calendar-nov-apr';
-import { createScene, drawScene } from './render.mjs?v=calendar-nov-apr';
-import { recordScene, saveFile } from './media.mjs';
+import { clamp, detectMoon, extractLight, phaseAt, recordingType, SHARE_TEXT, LINKS } from './core.mjs?v=20261030-hiragana';
+import { createScene, drawScene } from './render.mjs?v=20261030-hiragana';
+import { recordScene, saveFile } from './media.mjs?v=20261030-hiragana';
 import { TRACKS } from './tracks.mjs';
 import { prepareMusic, availableTracks, chooseTrack, unlockMusic, suspendMusic } from './music.mjs';
 import { COLLECTION } from './collection-config.mjs';
@@ -65,7 +65,7 @@ function createResult(){
 if(!light||recording)return;scene=createScene(photo,light,selectedPhase(),sample);$('result-actions').hidden=false;drawScene(preview,scene,0);message('写真を選びました。「光を送る」で動画が生まれます。');
 }
 $('create').onclick=createResult;
-async function save(blob,ext,suffix=''){try{const result=await saveFile(blob,`ひかりは巡る-${light.seed.toString(16)}${suffix}.${ext}`);message(result==='cancelled'?'保存・共有をキャンセルしました。':result==='shared'?'共有画面を閉じました。選んだ保存先をご確認ください。':'ダウンロードを開始しました。端末のファイルをご確認ください。');}catch{message('保存を開始できませんでした。「動画を開く」から保存をお試しください。',true);}}
+async function save(blob,ext,suffix=''){try{const result=await saveFile(blob,`ひかりはめぐる-${light.seed.toString(16)}${suffix}.${ext}`);message(result==='cancelled'?'保存・共有をキャンセルしました。':result==='shared'?'共有画面を閉じました。選んだ保存先をご確認ください。':'ダウンロードを開始しました。端末のファイルをご確認ください。');}catch{message('保存を開始できませんでした。「動画を開く」から保存をお試しください。',true);}}
 
 function lock(value){recording=value;for(const id of ['photo-input','detect','moon-x','moon-y','moon-radius','create'])$(id).disabled=value;$('cancel-video').hidden=!value;updateVideoButton();}
 $('make-video').onclick=async()=>{
@@ -75,7 +75,7 @@ $('make-video').onclick=async()=>{
   try{
     let audio=null;
     if(withMusic){const track=chooseTrack(TRACKS);$('recording-progress').textContent=`「${track.title}」の音源を準備しています…`;[,audio]=await Promise.all([unlockMusic(),prepareMusic(track,{signal:controller.signal})]);}
-    const result=await recordScene(recordingCanvas,scene,{audio,signal:controller.signal,onProgress:p=>{$('recording-progress').textContent=`動画を生成中… ${Math.round(p*100)}% / 12秒・${audio?audio.track.title:'音楽なし'}`;}});if(videoURL)URL.revokeObjectURL(videoURL);videoBlob=result.blob;videoExt=result.extension;videoTrackId=result.music?.id || '';videoURL=URL.createObjectURL(videoBlob);$('video').src=videoURL;$('open-video').href=videoURL;$('download-video').href=videoURL;$('download-video').download=`ひかりは巡る-${light.seed.toString(16)}${videoTrackId?'-'+videoTrackId:''}.${videoExt}`;$('video-result').hidden=false;$('recording-progress').textContent=`生成完了 · ${result.extension.toUpperCase()} · ${result.music?result.music.title+'／音楽付き':'音楽なし'} · 720 × 1280 · ${(videoBlob.size/1024/1024).toFixed(1)}MB`;
+    const result=await recordScene(recordingCanvas,scene,{audio,signal:controller.signal,onProgress:p=>{$('recording-progress').textContent=`動画を生成中… ${Math.round(p*100)}% / 12秒・${audio?audio.track.title:'音楽なし'}`;}});if(videoURL)URL.revokeObjectURL(videoURL);videoBlob=result.blob;videoExt=result.extension;videoTrackId=result.music?.id || '';videoURL=URL.createObjectURL(videoBlob);$('video').src=videoURL;$('open-video').href=videoURL;$('download-video').href=videoURL;$('download-video').download=`ひかりはめぐる-${light.seed.toString(16)}${videoTrackId?'-'+videoTrackId:''}.${videoExt}`;$('video-result').hidden=false;$('recording-progress').textContent=`生成完了 · ${result.extension.toUpperCase()} · ${result.music?result.music.title+'／音楽付き':'音楽なし'} · 720 × 1280 · ${(videoBlob.size/1024/1024).toFixed(1)}MB`;
     message(result.extension==='webm'?'WebM動画を生成しました。投稿先がWebM非対応の場合は別の対応ブラウザでお試しください。':'MP4動画を生成しました。下のプレーヤーで再生してから保存してください。');
     if(collectionConfig?.enabled&&!receipt){
       try{

@@ -6,7 +6,7 @@ export const SCHEDULE = [
   ['2027-04-23T00:00:00+09:00', 1],
 ];
 export const LINKS = { artist: null, music: null, ticket: null, album: null };
-export const SHARE_TEXT = '私の撮った月の光が、CDの盤面デザインの一部に。\n山形りお「ひかりは巡る」\n2027年4月24日（土）青山 月見ル君想フ\n#山形りお #ひかりは巡る';
+export const SHARE_TEXT = '私の撮った月の光が、CDの盤面デザインの一部に。\n山形りお「ひかりはめぐる」\n2027年4月24日（土）青山 月見ル君想フ\n#山形りお #ひかりはめぐる';
 export const clamp = (n, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, n));
 // One campaign phase per Japan calendar day, independent of submission count.
 export function phaseAt(date = new Date()) {

@@ -1,4 +1,4 @@
-import { clamp, random, DURATION, personalPhase } from './core.mjs?v=calendar-nov-apr';
+import { clamp, random, DURATION, personalPhase } from './core.mjs?v=20261030-hiragana';
 const serif = '"Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif';
 const ease = n => { n = clamp(n); return n*n*(3-2*n); };
 const rgb = (c,a=1) => `rgba(${c.join(',')},${a})`;
@@ -78,7 +78,7 @@ export function drawScene(canvas, scene, seconds=DURATION) {
     }
   }
   // Event details remain readable even at the first frame.
-  text(c,'山形りお ONEMAN LIVE',1395,29,'#d6ccaf',3);text(c,'「ひかりは巡る」',1495,65,'#f1ead8',5);
+  text(c,'山形りお ONEMAN LIVE',1395,29,'#d6ccaf',3);text(c,'「ひかりはめぐる」',1495,65,'#f1ead8',5);
   text(c,'2027年4月24日（土）',1600,34);text(c,'青山 月見ル君想フ',1655,32);text(c,'MINI ALBUM RELEASE',1755,25,'#d6ccaf',5);
-  text(c,scene.sample?'試作 / SAMPLE · 体験用サンプル':'ひかりは巡る · 試作',1835,18,'#909b9e',1);c.restore();
+  text(c,scene.sample?'試作 / SAMPLE · 体験用サンプル':'ひかりはめぐる · 試作',1835,18,'#909b9e',1);c.restore();
 }
