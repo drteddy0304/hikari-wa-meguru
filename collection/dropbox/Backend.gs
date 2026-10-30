@@ -1,5 +1,41 @@
 // Deploy the generated Code.gs with ../Bridge.html. Private settings live in Script Properties.
 const DBX_SCOPES_='account_info.read files.metadata.read files.content.write';
+const MATERIAL_NAMES_={'photo.jpg':'01_送ってもらった月の写真.jpg','moon.png':'02_抽出した月の光.png','preview.jpg':'03_確認用の小さな写真.jpg','light.json':'制作・管理データ/光の色と質感.json','consent.json':'制作・管理データ/送信時の記録.json','_complete.json':'制作・管理データ/保存完了.json'};
+function headerJSON_(value){return JSON.stringify(value).replace(/[\u007f-\uffff]/g,c=>'\\u'+('000'+c.charCodeAt(0).toString(16)).slice(-4));}
+function materialRoot_(testOnly){return testOnly?'/動作確認用（制作には使いません）':'/届いた写真と光素材';}
+function moveMaterial_(from,to){
+  const source=metadata_(from);if(!source)return;
+  if(metadata_(to))throw Error('移動先が既に存在します。上書きせず停止しました。');
+  const r=rpc_('files/move_v2',{from_path:from,to_path:to,autorename:false});
+  if(r.status!==200)throw safeError_();
+  const after=metadata_(to);
+  if(!after||after['.tag']!==source['.tag']||(source.content_hash&&after.content_hash!==source.content_hash))throw safeError_();
+}
+function prepareMaterialRoot_(testOnly){
+  const root=materialRoot_(testOnly),old=testOnly?'/connection-tests':'/submissions';
+  if(!metadata_(root)){if(metadata_(old))moveMaterial_(old,root);else ensureFolder_(root);}
+  return root;
+}
+function prepareMaterialBase_(root,id){
+  const base=root+'/投稿_'+id;
+  moveMaterial_(root+'/'+id,base);
+  if(metadata_(base)){
+    ensureFolder_(base+'/制作・管理データ');
+    Object.keys(MATERIAL_NAMES_).forEach(name=>moveMaterial_(base+'/'+name,base+'/'+MATERIAL_NAMES_[name]));
+  }
+  return base;
+}
+// Uses the same lock as intake; safe to rerun after an interruption. Never overwrites or deletes.
+function organizeDropboxMaterials(){ownerOnly_();return locked_(()=>{
+  let count=0;
+  for(const testOnly of [false,true]){
+    const root=prepareMaterialRoot_(testOnly);let page=rpc_('files/list_folder',{path:root,limit:2000});
+    const entries=[];
+    while(true){if(page.status!==200)throw safeError_();entries.push(...page.data.entries);if(!page.data.has_more)break;page=rpc_('files/list_folder/continue',{cursor:page.data.cursor});}
+    for(const entry of entries){const id=String(entry.name).replace(/^投稿_/,'');if(entry['.tag']==='folder'&&/^[a-f0-9-]{36}$/.test(id)){prepareMaterialBase_(root,id);count++;}}
+  }
+  console.log('日本語の名前に整理しました: '+count+'件');return {ok:true,count};
+});}
 // Uses deliberately invalid credentials; never reads or prints participant data or secrets.
 function diagnoseDropboxTransport(){
   ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL);
@@ -66,7 +102,7 @@ function upload_(path,blob){
   const expected=contentHash_(blob.getBytes()),existing=metadata_(path);
   if(existing){if(existing['.tag']!=='file'||existing.content_hash!==expected)throw Error('同じ投稿番号の素材が異なります。運営にお問い合わせください。');return existing;}
   const arg={path,mode:'add',autorename:false,strict_conflict:true,mute:true,content_hash:expected};
-  const r=UrlFetchApp.fetch('https://content.dropboxapi.com/2/files/upload',{method:'post',contentType:'application/octet-stream',headers:{Authorization:'Bearer '+token_(),'Dropbox-API-Arg':JSON.stringify(arg)},payload:blob.getBytes(),muteHttpExceptions:true,followRedirects:false});
+  const r=UrlFetchApp.fetch('https://content.dropboxapi.com/2/files/upload',{method:'post',contentType:'application/octet-stream',headers:{Authorization:'Bearer '+token_(),'Dropbox-API-Arg':headerJSON_(arg)},payload:blob.getBytes(),muteHttpExceptions:true,followRedirects:false});
   if(r.getResponseCode()!==200)throw safeError_();
   const saved=JSON.parse(r.getContentText());if(saved.content_hash!==expected)throw safeError_();return saved;
 }
@@ -161,20 +197,20 @@ function saveSubmission_(value,testOnly){
   return locked_(()=>{
     if(!testOnly&&!publicConfig().enabled)throw Error('写真の受付は現在停止しています。');
     if(testOnly)ownerOnly_();
-    const root=testOnly?'/connection-tests':'/submissions';
+    const root=prepareMaterialRoot_(testOnly);
     // google.script.run may reorder object properties between otherwise identical requests.
-    const digest=hex_(sha_(JSON.stringify(checked.blobs.map(b=>[b.getName(),contentHash_(b.getBytes())])))),base=root+'/'+value.id;
+    const digest=hex_(sha_(JSON.stringify(checked.blobs.map(b=>[b.getName(),contentHash_(b.getBytes())])))),base=prepareMaterialBase_(root,value.id);
     const receipt=jsonBlob_('_complete.json',{schema:1,id:value.id,digest});
-    const previous=metadata_(base+'/_complete.json');
+    const previous=metadata_(base+'/'+MATERIAL_NAMES_['_complete.json']);
     if(previous){if(previous.content_hash!==contentHash_(receipt.getBytes()))throw Error('同じ投稿番号の内容が異なります。');return {ok:true,id:value.id,duplicate:true};}
     reserve_(checked.total+16384);
-    ensureFolder_(root);ensureFolder_(base);
-    const first=upload_(base+'/photo.jpg',checked.blobs[0]);
-    checked.blobs.slice(1).forEach(b=>upload_(base+'/'+b.getName(),b));
+    ensureFolder_(base);ensureFolder_(base+'/制作・管理データ');
+    const first=upload_(base+'/'+MATERIAL_NAMES_['photo.jpg'],checked.blobs[0]);
+    checked.blobs.slice(1).forEach(b=>upload_(base+'/'+MATERIAL_NAMES_[b.getName()],b));
     const config=publicConfig();
     // First file's immutable server timestamp makes interrupted uploads retryable.
-    upload_(base+'/consent.json',jsonBlob_('consent.json',testOnly?{id:value.id,testOnly:true,synthetic:true,receivedAt:first.server_modified}:{id:value.id,receivedAt:first.server_modified,agreed:true,termsVersion:TERMS_VERSION_,terms:TERMS_,operator:config.operator,contact:config.contact}));
-    upload_(base+'/_complete.json',receipt);
+    upload_(base+'/'+MATERIAL_NAMES_['consent.json'],jsonBlob_('consent.json',testOnly?{id:value.id,testOnly:true,synthetic:true,receivedAt:first.server_modified}:{id:value.id,receivedAt:first.server_modified,agreed:true,termsVersion:TERMS_VERSION_,terms:TERMS_,operator:config.operator,contact:config.contact}));
+    upload_(base+'/'+MATERIAL_NAMES_['_complete.json'],receipt);
     return {ok:true,id:value.id};
   });
 }
