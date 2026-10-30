@@ -14,3 +14,5 @@
 .live-info .ticket-links{display:flex;flex-direction:column;gap:12px}.ticket-links a{font-size:14px}.admission-order{margin:16px 0 24px;line-height:1.9}
 
 .flyer-section{max-width:620px;padding-top:16px;padding-bottom:32px}.flyer-section .live-flyer{margin-bottom:0}
+
+.ticket-design{margin:28px auto 20px;text-align:center}.ticket-design a{display:block;width:150px;max-width:50%;margin:auto;line-height:0}.ticket-design img{display:block;width:100%;height:auto}.ticket-design figcaption{font-size:12px;margin-top:12px;color:var(--gold)}.ticket-design figcaption small{display:block;font-size:10px;color:var(--muted);margin-top:3px}
