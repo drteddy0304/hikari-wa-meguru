@@ -25,3 +25,6 @@
 
 /* Desktop: keep the same calm, centered reading flow as the participation area. */
 @media(min-width:701px){.project-live-layout{display:block;max-width:620px;padding:24px 40px}.project-live-layout>.project-story{margin-bottom:28px}.project-art{max-width:180px;margin:12px auto 10px}.project-live-layout>.live{border-top:1px solid var(--line);padding-top:28px}.purchase-options{max-width:440px;margin:22px auto 0}.flyer-section{max-width:620px}}
+
+/* Wide screens use two balanced columns; phone layout stays unchanged. */
+@media(min-width:1000px){.participate{max-width:1120px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center;padding:36px 48px}.simple-heading{margin:0}.workspace{min-width:0;width:100%;max-width:460px;justify-self:center}.project-live-layout{display:grid;max-width:1120px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center;padding:32px 48px}.project-live-layout>.project-story{margin:0}.project-art{max-width:270px;margin:16px auto 12px}.project-live-layout>.live{border:0;padding:0}.purchase-options{margin-top:18px}.flyer-section{max-width:1120px;padding-top:20px}}
