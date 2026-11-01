@@ -1,6 +1,6 @@
 import { clamp, detectMoon, extractLight, phaseAt, recordingType, SHARE_TEXT, LINKS } from './core.mjs?v=20261102-16seconds';
-import { createScene, drawScene } from './render.mjs?v=20261102-16seconds';
-import { recordScene, saveFile } from './media.mjs?v=20261102-16seconds';
+import { createScene, drawScene } from './render.mjs?v=20261102-photo';
+import { recordScene, saveFile } from './media.mjs?v=20261102-photo';
 import { TRACKS } from './tracks.mjs?v=20261102-16seconds';
 import { prepareMusic, availableTracks, chooseTrack, unlockMusic, suspendMusic } from './music.mjs?v=20261102-16seconds';
 import { COLLECTION } from './collection-config.mjs';

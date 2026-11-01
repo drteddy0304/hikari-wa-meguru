@@ -1,5 +1,5 @@
 import { DURATION, recordingType } from './core.mjs?v=20261102-16seconds';
-import { drawScene } from './render.mjs?v=20261102-16seconds';
+import { drawScene } from './render.mjs?v=20261102-photo';
 export function canvasBlob(canvas) {
   return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('画像を生成できませんでした。')),'image/png'));
 }

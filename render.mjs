@@ -69,7 +69,7 @@ export function drawScene(canvas, scene, seconds=DURATION) {
   const currentPhase=scene.phase+(target-scene.phase)*added;
   disc(c,scene.texture,540,795,305,currentPhase,scene.light,added);
   if(scene.photo && scene.light){
-    const p=scene.photo,scale=Math.min(300/p.width,270/p.height),w=p.width*scale,h=p.height*scale,x=540-w/2,y=1195-h/2;
+    const p=scene.photo,scale=Math.min(300/p.width,200/p.height),w=p.width*scale,h=p.height*scale,x=540-w/2,y=1140+(200-h)/2;
     c.save();c.globalAlpha=1-ease((seconds-6)/2);c.drawImage(p,x,y,w,h);c.restore();
     for(const s of scene.light.samples){
       const u=(seconds-1.2-s.delay*6)/4.5;if(u<=0||u>=1)continue;
