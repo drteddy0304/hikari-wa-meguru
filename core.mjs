@@ -1,6 +1,6 @@
 // Versioned, browser-local contribution data. No image bytes, filenames or EXIF leave the device.
 export const VERSION = 1;
-export const DURATION = 12;
+export const DURATION = 16;
 export const SCHEDULE = [
   ['2026-11-01T00:00:00+09:00', 0],
   ['2027-04-23T00:00:00+09:00', 1],

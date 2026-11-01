@@ -1,4 +1,4 @@
-import { DURATION } from './core.mjs';
+import { DURATION } from './core.mjs?v=20261102-16seconds';
 
 let context;
 const buffers = new Map();
@@ -51,7 +51,7 @@ export async function prepareMusic(track, { signal } = {}) {
     const response = await fetch(url, { signal, credentials: 'same-origin' });
     if (!response.ok) throw new Error('音源を読み込めませんでした。曲を選び直してください。');
     buffer = await context.decodeAudioData(await response.arrayBuffer());
-    if (buffer.duration < DURATION - .05) throw new Error('音源が12秒より短いため動画を生成できません。');
+    if (buffer.duration < DURATION - .05) throw new Error('音源が16秒より短いため動画を生成できません。');
     buffers.set(url.href, buffer);
   }
   return { context, buffer, track };

@@ -1,5 +1,5 @@
-import { DURATION, recordingType } from './core.mjs';
-import { drawScene } from './render.mjs';
+import { DURATION, recordingType } from './core.mjs?v=20261102-16seconds';
+import { drawScene } from './render.mjs?v=20261102-16seconds';
 export function canvasBlob(canvas) {
   return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('画像を生成できませんでした。')),'image/png'));
 }
@@ -8,7 +8,7 @@ export async function recordScene(canvas, scene, { signal, onProgress=()=>{}, au
   if(!type)throw new Error(audio?'このブラウザは音楽付き動画の記録形式に対応していません。「音楽なし」か画像版をご利用ください。':'このブラウザは動画生成に対応していません。画像版を保存するか、別のブラウザでお試しください。');
   if(signal?.aborted)throw new DOMException('動画生成を中止しました。','AbortError');
   if(audio){
-    if(!audio.context || !audio.buffer || audio.buffer.duration<DURATION-.05)throw new Error('動画に使う12秒の音源を準備できていません。');
+    if(!audio.context || !audio.buffer || audio.buffer.duration<DURATION-.05)throw new Error('動画に使う16秒の音源を準備できていません。');
     // Called directly from the record button gesture, after the clip was decoded.
     let timer;
     try{

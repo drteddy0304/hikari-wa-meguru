@@ -1,4 +1,4 @@
-import { clamp, random, DURATION, personalPhase } from './core.mjs?v=20261030-hiragana';
+import { clamp, random, DURATION, personalPhase } from './core.mjs?v=20261102-16seconds';
 const serif = '"Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif';
 const ease = n => { n = clamp(n); return n*n*(3-2*n); };
 const rgb = (c,a=1) => `rgba(${c.join(',')},${a})`;
@@ -56,6 +56,7 @@ export function createScene(photo, light, phase, sample=false) {
 }
 // Both PNG and video are this exact scene at a different timestamp / resolution.
 export function drawScene(canvas, scene, seconds=DURATION) {
+  seconds *= 12 / DURATION; // Stretch the existing choreography to the export duration.
   const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);c.save();c.scale(canvas.width/1080,canvas.height/1920);
   const bg=c.createLinearGradient(0,0,1080,1920);bg.addColorStop(0,'#142430');bg.addColorStop(.65,'#0b1521');bg.addColorStop(1,'#121a25');c.fillStyle=bg;c.fillRect(0,0,1080,1920);
   c.strokeStyle='rgba(216,211,190,.17)';c.lineWidth=1;c.strokeRect(44,44,992,1832);

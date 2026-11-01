@@ -6,27 +6,27 @@ export const TRACKS = [
     "title": "shampoo",
     "chorusStart": 72,
     "enabled": true,
-    "src": "./audio/shampoo-chorus.mp3?v=6e451e144c96"
+    "src": "./audio/shampoo-chorus.mp3?v=8c8b32fb514e"
   },
   {
     "id": "haru",
     "title": "春",
     "chorusStart": 77,
     "enabled": true,
-    "src": "./audio/haru-chorus.mp3?v=8f92cc6d951b"
+    "src": "./audio/haru-chorus.mp3?v=25c3e9602615"
   },
   {
     "id": "yoru",
     "title": "夜に隠して",
     "chorusStart": 35,
     "enabled": true,
-    "src": "./audio/yoru-chorus.mp3?v=6b4dba7a0645"
+    "src": "./audio/yoru-chorus.mp3?v=e5db778dde46"
   },
   {
     "id": "iki",
     "title": "息を吐くように",
     "chorusStart": 43,
     "enabled": true,
-    "src": "./audio/iki-chorus.mp3?v=ccf3d5ec65fa"
+    "src": "./audio/iki-chorus.mp3?v=b292138af165"
   }
 ];
